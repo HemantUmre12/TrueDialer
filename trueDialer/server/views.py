@@ -1,7 +1,5 @@
-from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,7 +9,6 @@ from .serializers import RegisterUserSerializer, SpamReportSerializer
 
 class RegisterView(APIView):
     def post(self, request):
-        # ! Check if phone number is valid
         serializer = RegisterUserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -27,27 +24,10 @@ class RegisterView(APIView):
         return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
-    def post(self, request):
-        phone_number = request.data.get("phone_number")
-        password = request.data.get("password")
-        user = authenticate(
-            request=request, phone_number=phone_number, password=password
-        )
-        if user:
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({"token": token.key})
-        return Response(
-            {"error": "Invalid Credentials"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-
 class MarkSpamView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        # !! Check if user already marked the phone number as spam
-
         data = request.data
         serializer = SpamReportSerializer(data=data, context={"request": request})
         if serializer.is_valid():
@@ -89,6 +69,7 @@ class SearchView(APIView):
             spam_reports = SpamReport.get_spam_report_cnt(contact.phone_number)
             result_data.append(
                 {
+                    "id": contact.id,
                     "name": contact.name,
                     "phone_number": contact.phone_number,
                     "spam_reports": spam_reports,

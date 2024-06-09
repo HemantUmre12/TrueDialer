@@ -134,8 +134,3 @@ AUTH_USER_MODEL = "server.CustomUser"
 
 FAKER_LOCALE = None
 FAKER_PROVIDERS = None
-
-AUTHENTICATION_BACKENDS = [
-    "server.authentication.PhoneNumberBackend",
-    "django.contrib.auth.backends.ModelBackend",
-]
